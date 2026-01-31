@@ -120,23 +120,6 @@
             transform: none;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: flex-end;
-        }
-
-        .refresh-btn {
-            background: #17a2b8;
-            padding: 10px 20px;
-            font-size: 0.9em;
-        }
-
-        .refresh-btn:hover {
-            background: #138496;
-        }
-
         .table-container {
             overflow-x: auto;
         }
@@ -249,10 +232,6 @@
             th, td {
                 padding: 10px;
             }
-
-            .action-buttons {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
@@ -261,7 +240,7 @@
         <h1>🛒 Purchase Tracker</h1>
         
         <div id="statusIndicator" class="status-indicator status-loading">
-            Loading data from GitHub...
+            Connecting to database...
         </div>
         
         <div class="add-form">
@@ -288,10 +267,6 @@
             <button onclick="addEntry()" id="addBtn">Add Entry</button>
         </div>
 
-        <div class="action-buttons">
-            <button class="refresh-btn" onclick="loadFromGitHub()">🔄 Refresh Data</button>
-        </div>
-
         <div class="table-container">
             <table id="purchaseTable">
                 <thead>
@@ -312,123 +287,64 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, onValue, remove, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
         // ========================================
-        // GITHUB CONFIGURATION
+        // FIREBASE CONFIGURATION
         // ========================================
-        const GITHUB_CONFIG = {
-            owner: 'AtulKumarDTU',        // Replace with your GitHub username
-            repo: 'PurchaseTracker',               // Replace with your repository name
-            path: 'purchases.json',               // The JSON file path in your repo
-            token: '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',           // Replace with your GitHub Personal Access Token
-            branch: 'main'                        // or 'master' depending on your repo
-        };
+        // Replace these with your Firebase project credentials
+        const firebaseConfig = {
+			  apiKey: "AIzaSyDUwLIOBpAQKGHIuzHQRw99t3F8OFLTm_g",
+			  authDomain: "purchasetracker-c3f0d.firebaseapp.com",
+			  databaseURL: "https://purchasetracker-c3f0d-default-rtdb.asia-southeast1.firebasedatabase.app",
+			  projectId: "purchasetracker-c3f0d",
+			  storageBucket: "purchasetracker-c3f0d.firebasestorage.app",
+			  messagingSenderId: "310271511070",
+			  appId: "1:310271511070:web:cd7439e3d97a25b2d87c0f"
+			};
+
+        // Initialize Firebase
+        let app, database;
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            updateStatus('connected', '✓ Connected to database - Real-time sync active');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            updateStatus('error', '✗ Database connection failed');
+        }
 
         let entries = [];
+        let entriesRef = ref(database, 'purchases');
         let sortColumn = -1;
         let sortDirection = 1;
-        let fileSha = null; // Required for updating files in GitHub
 
         // ========================================
-        // GITHUB API FUNCTIONS
+        // DATABASE FUNCTIONS
         // ========================================
 
-        async function loadFromGitHub() {
-            updateStatus('loading', 'Loading data from GitHub...');
+        // Listen for real-time updates
+        onValue(entriesRef, (snapshot) => {
+            entries = [];
+            const data = snapshot.val();
             
-            try {
-                const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
-                
-                const response = await fetch(url, {
-                    headers: {
-                        'Authorization': `token ${GITHUB_CONFIG.token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    entries.push({
+                        id: key,
+                        ...data[key]
+                    });
                 });
-
-                if (response.status === 404) {
-                    // File doesn't exist yet, create it
-                    console.log('File not found, will create on first save');
-                    entries = [];
-                    fileSha = null;
-                    updateStatus('connected', '✓ Connected to GitHub (file will be created on first save)');
-                    renderTable();
-                    return;
-                }
-
-                if (!response.ok) {
-                    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                fileSha = data.sha; // Store SHA for future updates
-                
-                // Decode base64 content
-                const content = atob(data.content);
-                entries = JSON.parse(content);
-                
-                updateStatus('connected', '✓ Connected to GitHub - Data loaded successfully');
-                renderTable();
-            } catch (error) {
-                console.error('Error loading from GitHub:', error);
-                updateStatus('error', '✗ Error connecting to GitHub: ' + error.message);
-                
-                // Fall back to localStorage
-                const saved = localStorage.getItem('purchaseEntries');
-                if (saved) {
-                    entries = JSON.parse(saved);
-                    renderTable();
-                }
             }
-        }
-
-        async function saveToGitHub() {
-            updateStatus('loading', 'Saving to GitHub...');
             
-            try {
-                const content = btoa(JSON.stringify(entries, null, 2)); // Base64 encode
-                const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
-                
-                const body = {
-                    message: `Update purchases - ${new Date().toISOString()}`,
-                    content: content,
-                    branch: GITHUB_CONFIG.branch
-                };
-
-                // If file exists, include SHA for update
-                if (fileSha) {
-                    body.sha = fileSha;
-                }
-
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${GITHUB_CONFIG.token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                fileSha = data.content.sha; // Update SHA for next save
-                
-                // Also save to localStorage as backup
-                localStorage.setItem('purchaseEntries', JSON.stringify(entries));
-                
-                updateStatus('connected', '✓ Saved to GitHub successfully');
-            } catch (error) {
-                console.error('Error saving to GitHub:', error);
-                updateStatus('error', '✗ Error saving to GitHub: ' + error.message);
-                
-                // Save to localStorage as fallback
-                localStorage.setItem('purchaseEntries', JSON.stringify(entries));
-            }
-        }
+            renderTable();
+        }, (error) => {
+            console.error('Error loading data:', error);
+            updateStatus('error', '✗ Error loading data: ' + error.message);
+        });
 
         function updateStatus(type, message) {
             const indicator = document.getElementById('statusIndicator');
@@ -485,7 +401,7 @@
             return new Set(Object.values(latestMap).map(item => item.index));
         }
 
-        function sortTable(columnIndex) {
+        window.sortTable = function(columnIndex) {
             const headers = document.querySelectorAll('th');
             
             if (sortColumn === columnIndex) {
@@ -561,7 +477,6 @@
                     row.classList.add('latest-purchase');
                 }
                 
-                // Check if store is a URL
                 const storeDisplay = entry.store.startsWith('http') 
                     ? `<a href="${entry.store}" target="_blank" style="color: #667eea; text-decoration: none;">🔗 Link</a>`
                     : entry.store;
@@ -573,12 +488,12 @@
                     <td>${entry.quantity}</td>
                     <td>₹${entry.price.toFixed(2)}</td>
                     <td class="per-kg">${calculatePerKg(entry.quantity, entry.price)}</td>
-                    <td><button class="delete-btn" onclick="deleteEntry(${index})">Delete</button></td>
+                    <td><button class="delete-btn" onclick="deleteEntry('${entry.id}')">Delete</button></td>
                 `;
             });
         }
 
-        async function addEntry() {
+        window.addEntry = async function() {
             const dateInput = document.getElementById('dateInput');
             const nameInput = document.getElementById('nameInput');
             const storeInput = document.getElementById('storeInput');
@@ -591,51 +506,43 @@
                 return;
             }
 
-            // Disable button while saving
             addBtn.disabled = true;
 
-            entries.push({
-                date: dateInput.value,
-                name: nameInput.value,
-                store: storeInput.value,
-                quantity: quantityInput.value,
-                price: parseFloat(priceInput.value)
-            });
+            try {
+                await push(entriesRef, {
+                    date: dateInput.value,
+                    name: nameInput.value,
+                    store: storeInput.value,
+                    quantity: quantityInput.value,
+                    price: parseFloat(priceInput.value),
+                    timestamp: Date.now()
+                });
 
-            await saveToGitHub();
+                // Clear inputs
+                dateInput.value = '';
+                nameInput.value = '';
+                storeInput.value = '';
+                quantityInput.value = '';
+                priceInput.value = '';
+            } catch (error) {
+                console.error('Error adding entry:', error);
+                alert('Error adding entry: ' + error.message);
+            }
 
-            // Clear inputs
-            dateInput.value = '';
-            nameInput.value = '';
-            storeInput.value = '';
-            quantityInput.value = '';
-            priceInput.value = '';
-
-            renderTable();
             addBtn.disabled = false;
         }
 
-        async function deleteEntry(index) {
+        window.deleteEntry = async function(entryId) {
             if (confirm('Are you sure you want to delete this entry?')) {
-                entries.splice(index, 1);
-                await saveToGitHub();
-                renderTable();
+                try {
+                    const entryRef = ref(database, `purchases/${entryId}`);
+                    await remove(entryRef);
+                } catch (error) {
+                    console.error('Error deleting entry:', error);
+                    alert('Error deleting entry: ' + error.message);
+                }
             }
         }
-
-        // ========================================
-        // INITIALIZE
-        // ========================================
-        
-        // Load data when page loads
-        window.addEventListener('load', () => {
-            loadFromGitHub();
-        });
-
-        // Auto-refresh every 30 seconds to get updates from other users
-        setInterval(() => {
-            loadFromGitHub();
-        }, 30000);
     </script>
 </body>
 </html>
