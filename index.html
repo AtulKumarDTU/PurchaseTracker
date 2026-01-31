@@ -203,6 +203,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            position: relative;
         }
 
         label {
@@ -241,116 +242,144 @@
             transform: translateY(-1px);
         }
 
+        /* Autocomplete styles */
+        .autocomplete-items {
+            position: absolute;
+            border: 2px solid var(--outline);
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 12px var(--shadow-md);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .autocomplete-items div {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--outline);
+            transition: background-color 0.2s;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: var(--surface-variant);
+        }
+
+        .autocomplete-items div:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-active {
+            background-color: var(--primary-light) !important;
+            color: white;
+        }
+
         .btn {
             padding: 14px 28px;
             border: none;
             border-radius: 12px;
             font-size: 1rem;
-            font-weight: 600;
-            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
         }
 
-        .btn-primary:active {
+        .btn-primary:active:not(:disabled) {
             transform: translateY(0);
         }
 
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+        /* Smaller action buttons */
+        .btn-delete, .btn-edit {
+            padding: 6px 12px;
+            font-size: 0.813rem;
+            border-radius: 8px;
+            box-shadow: none;
         }
 
         .btn-delete {
-            background: linear-gradient(135deg, var(--error), #dc2626);
+            background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
             color: white;
-            padding: 8px 16px;
-            font-size: 0.875rem;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
         }
 
         .btn-delete:hover {
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
-        .table-container {
-            overflow-x: auto;
-            margin-top: 24px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            animation-delay: 0.4s;
+        .btn-edit {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            margin-right: 6px;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-delete .material-symbols-outlined,
+        .btn-edit .material-symbols-outlined {
+            font-size: 14px;
         }
 
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            background: var(--surface);
+            animation-delay: 0.4s;
         }
 
         thead {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
         th {
-            padding: 18px 16px;
+            padding: 16px;
             text-align: left;
             font-weight: 600;
             font-size: 0.875rem;
-            color: white;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.05em;
             cursor: pointer;
             user-select: none;
-            transition: all 0.3s ease;
-            white-space: nowrap;
+            transition: background-color 0.3s;
+            position: relative;
         }
 
         th:first-child {
-            border-top-left-radius: 16px;
+            border-radius: 12px 0 0 0;
         }
 
         th:last-child {
-            border-top-right-radius: 16px;
+            border-radius: 0 12px 0 0;
         }
 
         th:hover {
@@ -375,34 +404,60 @@
         }
 
         tbody tr {
-            transition: all 0.3s ease;
-            border-bottom: 1px solid var(--outline);
+            background: var(--surface);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: rowSlide 0.5s ease-out backwards;
+        }
+
+        @keyframes rowSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         tbody tr:hover {
             background: var(--surface-variant);
             transform: scale(1.01);
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
         tbody tr.latest-purchase {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), transparent);
-            border-left: 4px solid var(--warning);
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, var(--surface) 100%);
+            border-left: 4px solid var(--success);
         }
 
         tbody tr.latest-purchase:hover {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), transparent);
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.12) 0%, var(--surface-variant) 100%);
         }
 
         td {
             padding: 16px;
-            font-size: 0.95rem;
-            color: var(--on-surface);
+            border-bottom: 1px solid var(--outline);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
         }
 
         .per-kg {
             font-weight: 600;
             color: var(--primary);
-            font-size: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px !important;
+            color: var(--on-surface-variant);
+        }
+
+        .empty-state .material-symbols-outlined {
+            font-size: 64px;
+            opacity: 0.3;
         }
 
         .store-link {
@@ -412,223 +467,145 @@
             align-items: center;
             gap: 4px;
             font-weight: 500;
-            transition: all 0.2s ease;
+            transition: all 0.3s;
         }
 
         .store-link:hover {
             color: var(--primary-dark);
-            gap: 8px;
+            gap: 6px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--on-surface-variant);
-        }
-
-        .empty-state .material-symbols-outlined {
-            font-size: 64px;
-            opacity: 0.3;
-            margin-bottom: 16px;
-        }
-
-        .loading-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--primary);
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(99, 102, 241, 0.2);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-
-            .card {
-                padding: 20px;
-                border-radius: 20px;
-            }
-
-            .add-form {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .table-container {
-                border-radius: 12px;
-            }
-
+        @media (max-width: 1024px) {
             table {
                 font-size: 0.875rem;
             }
 
             th, td {
-                padding: 12px 10px;
-            }
-
-            th {
-                font-size: 0.75rem;
+                padding: 12px;
             }
 
             .btn {
-                width: 100%;
+                padding: 12px 20px;
+                font-size: 0.875rem;
             }
 
-            /* Mobile table scroll hint */
-            .table-container::after {
-                content: '← Scroll →';
-                display: block;
-                text-align: center;
-                padding: 12px;
-                background: var(--surface-variant);
-                color: var(--on-surface-variant);
+            .btn-delete, .btn-edit {
+                padding: 6px 10px;
                 font-size: 0.75rem;
-                border-radius: 0 0 12px 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .add-form {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .header h1 {
                 font-size: 2rem;
             }
-        }
 
-        @media (max-width: 480px) {
-            th, td {
-                padding: 10px 8px;
-                font-size: 0.8rem;
+            .btn-delete, .btn-edit {
+                padding: 5px 8px;
+                font-size: 0.7rem;
             }
 
-            .btn {
-                padding: 12px 20px;
-                font-size: 0.9rem;
+            .btn-delete .material-symbols-outlined,
+            .btn-edit .material-symbols-outlined {
+                font-size: 12px;
             }
-
-            .btn-delete {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
-        }
-
-        /* Smooth scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--surface-variant);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary-light);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <header class="header">
+        <div class="header">
             <h1>🛒 Purchase Tracker</h1>
-            <p>Track your purchases in real-time, anywhere</p>
+            <p>Track and compare your grocery purchases</p>
             <div id="statusIndicator" class="status-badge loading">
                 <span class="status-dot"></span>
                 <span>Connecting to database...</span>
             </div>
-        </header>
+        </div>
 
-        <div class="card" style="animation-delay: 0.1s;">
-            <h2 class="card-title">
+        <div class="card">
+            <div class="card-title">
                 <span class="material-symbols-outlined">add_circle</span>
                 Add New Purchase
-            </h2>
-            <form class="add-form" onsubmit="event.preventDefault(); addEntry();">
+            </div>
+            <div class="add-form">
                 <div class="form-group">
                     <label>
                         <span class="material-symbols-outlined">calendar_today</span>
-                        Date of Purchase
+                        Date
                     </label>
                     <input type="date" id="dateInput" required>
                 </div>
                 <div class="form-group">
                     <label>
-                        <span class="material-symbols-outlined">shopping_bag</span>
-                        Product Name
+                        <span class="material-symbols-outlined">label</span>
+                        Item Name
                     </label>
-                    <input type="text" id="nameInput" placeholder="e.g., Rice" required>
+                    <input type="text" id="nameInput" placeholder="e.g., Rice, Dal" required autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>
                         <span class="material-symbols-outlined">store</span>
-                        Store Name/Link
+                        Store
                     </label>
-                    <input type="text" id="storeInput" placeholder="e.g., Amazon or URL" required>
+                    <input type="text" id="storeInput" placeholder="e.g., Reliance Fresh" required autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>
                         <span class="material-symbols-outlined">scale</span>
                         Quantity
                     </label>
-                    <input type="text" id="quantityInput" placeholder="e.g., 500g or 2Kg" required>
+                    <input type="text" id="quantityInput" placeholder="e.g., 1kg, 500g" required>
                 </div>
                 <div class="form-group">
                     <label>
-                        <span class="material-symbols-outlined">payments</span>
+                        <span class="material-symbols-outlined">currency_rupee</span>
                         Price (₹)
                     </label>
-                    <input type="number" id="priceInput" placeholder="₹" step="0.01" required>
+                    <input type="number" id="priceInput" placeholder="e.g., 120" step="0.01" required>
                 </div>
-                <div class="form-group" style="justify-content: flex-end;">
-                    <button type="submit" class="btn btn-primary" id="addBtn">
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button class="btn btn-primary" id="addBtn" onclick="addEntry()">
                         <span class="material-symbols-outlined">add</span>
-                        Add Entry
+                        <span id="addBtnText">Add Entry</span>
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
 
-        <div class="card" style="animation-delay: 0.2s;">
-            <h2 class="card-title">
-                <span class="material-symbols-outlined">receipt_long</span>
+        <div class="card">
+            <div class="card-title">
+                <span class="material-symbols-outlined">inventory_2</span>
                 Purchase History
-            </h2>
-            <div class="table-container">
+            </div>
+            <div style="overflow-x: auto;">
                 <table>
                     <thead>
                         <tr>
                             <th onclick="sortTable(0)">Date</th>
-                            <th onclick="sortTable(1)">Product</th>
+                            <th onclick="sortTable(1)">Name</th>
                             <th onclick="sortTable(2)">Store</th>
                             <th onclick="sortTable(3)">Quantity</th>
                             <th onclick="sortTable(4)">Price</th>
-                            <th onclick="sortTable(5)">Per Kg</th>
-                            <th>Action</th>
+                            <th onclick="sortTable(5)">Per KG</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr>
-                            <td colspan="7" class="loading-state">
-                                <div class="loading-spinner"></div>
-                                <p style="margin-top: 16px;">Loading purchases...</p>
+                            <td colspan="7" class="empty-state">
+                                <span class="material-symbols-outlined">inbox</span>
+                                <p style="margin-top: 8px; font-weight: 500;">Loading...</p>
                             </td>
                         </tr>
                     </tbody>
@@ -637,16 +614,12 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, push, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js';
+        import { getDatabase, ref, push, set, onValue, remove } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js';
 
-        // ========================================
-        // FIREBASE CONFIGURATION
-        // ========================================
         const firebaseConfig = {
-		  apiKey: "AIzaSyDUwLIOBpAQKGHIuzHQRw99t3F8OFLTm_g",
+		  apiKey: "AIzaSyBHw6HqZRBVIEJF0xEzQKKdwKHG65cL_-A",
 		  authDomain: "purchasetracker-c3f0d.firebaseapp.com",
 		  databaseURL: "https://purchasetracker-c3f0d-default-rtdb.asia-southeast1.firebasedatabase.app",
 		  projectId: "purchasetracker-c3f0d",
@@ -669,6 +642,7 @@
         let entriesRef = ref(database, 'purchases');
         let sortColumn = -1;
         let sortDirection = 1;
+        let editingId = null;
 
         onValue(entriesRef, (snapshot) => {
             entries = [];
@@ -684,6 +658,7 @@
             }
             
             renderTable();
+            setupAutocomplete();
         }, (error) => {
             console.error('Error loading data:', error);
             updateStatus('error', 'Error loading data: ' + error.message);
@@ -835,9 +810,122 @@
                     <td>${entry.quantity}</td>
                     <td>₹${entry.price.toFixed(2)}</td>
                     <td class="per-kg">${calculatePerKg(entry.quantity, entry.price)}</td>
-                    <td><button class="btn btn-delete" onclick="deleteEntry('${entry.id}')"><span class="material-symbols-outlined" style="font-size: 16px;">delete</span>Delete</button></td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editEntry('${entry.id}')">
+                            <span class="material-symbols-outlined">edit</span>Edit
+                        </button>
+                        <button class="btn btn-delete" onclick="deleteEntry('${entry.id}')">
+                            <span class="material-symbols-outlined">delete</span>Delete
+                        </button>
+                    </td>
                 `;
             });
+        }
+
+        // Autocomplete functionality
+        function setupAutocomplete() {
+            const nameInput = document.getElementById('nameInput');
+            const storeInput = document.getElementById('storeInput');
+
+            // Get unique names and stores
+            const names = [...new Set(entries.map(e => e.name))].sort();
+            const stores = [...new Set(entries.map(e => e.store))].sort();
+
+            autocomplete(nameInput, names);
+            autocomplete(storeInput, stores);
+        }
+
+        function autocomplete(inp, arr) {
+            let currentFocus;
+            
+            inp.addEventListener("input", function(e) {
+                let a, b, i, val = this.value;
+                closeAllLists();
+                if (!val) { return false; }
+                currentFocus = -1;
+                
+                a = document.createElement("DIV");
+                a.setAttribute("id", this.id + "autocomplete-list");
+                a.setAttribute("class", "autocomplete-items");
+                this.parentNode.appendChild(a);
+                
+                for (i = 0; i < arr.length; i++) {
+                    if (arr[i].toLowerCase().includes(val.toLowerCase())) {
+                        b = document.createElement("DIV");
+                        b.innerHTML = arr[i];
+                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                        
+                        b.addEventListener("click", function(e) {
+                            inp.value = this.getElementsByTagName("input")[0].value;
+                            closeAllLists();
+                        });
+                        a.appendChild(b);
+                    }
+                }
+            });
+            
+            inp.addEventListener("keydown", function(e) {
+                let x = document.getElementById(this.id + "autocomplete-list");
+                if (x) x = x.getElementsByTagName("div");
+                if (e.keyCode == 40) {
+                    currentFocus++;
+                    addActive(x);
+                } else if (e.keyCode == 38) {
+                    currentFocus--;
+                    addActive(x);
+                } else if (e.keyCode == 13) {
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        if (x) x[currentFocus].click();
+                    }
+                }
+            });
+            
+            function addActive(x) {
+                if (!x) return false;
+                removeActive(x);
+                if (currentFocus >= x.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = (x.length - 1);
+                x[currentFocus].classList.add("autocomplete-active");
+            }
+            
+            function removeActive(x) {
+                for (let i = 0; i < x.length; i++) {
+                    x[i].classList.remove("autocomplete-active");
+                }
+            }
+            
+            function closeAllLists(elmnt) {
+                const x = document.getElementsByClassName("autocomplete-items");
+                for (let i = 0; i < x.length; i++) {
+                    if (elmnt != x[i] && elmnt != inp) {
+                        x[i].parentNode.removeChild(x[i]);
+                    }
+                }
+            }
+            
+            document.addEventListener("click", function (e) {
+                closeAllLists(e.target);
+            });
+        }
+
+        window.editEntry = function(entryId) {
+            const entry = entries.find(e => e.id === entryId);
+            if (!entry) return;
+
+            editingId = entryId;
+            
+            document.getElementById('dateInput').value = entry.date;
+            document.getElementById('nameInput').value = entry.name;
+            document.getElementById('storeInput').value = entry.store;
+            document.getElementById('quantityInput').value = entry.quantity;
+            document.getElementById('priceInput').value = entry.price;
+            
+            document.getElementById('addBtnText').textContent = 'Update Entry';
+            document.getElementById('addBtn').style.background = 'linear-gradient(135deg, var(--warning) 0%, #d97706 100%)';
+            
+            // Scroll to form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         window.addEntry = async function() {
@@ -856,23 +944,36 @@
             addBtn.disabled = true;
 
             try {
-                await push(entriesRef, {
+                const entryData = {
                     date: dateInput.value,
                     name: nameInput.value,
                     store: storeInput.value,
                     quantity: quantityInput.value,
                     price: parseFloat(priceInput.value),
                     timestamp: Date.now()
-                });
+                };
 
+                if (editingId) {
+                    // Update existing entry
+                    const entryRef = ref(database, `purchases/${editingId}`);
+                    await set(entryRef, entryData);
+                    editingId = null;
+                    document.getElementById('addBtnText').textContent = 'Add Entry';
+                    document.getElementById('addBtn').style.background = '';
+                } else {
+                    // Add new entry
+                    await push(entriesRef, entryData);
+                }
+
+                // Clear form
                 dateInput.value = '';
                 nameInput.value = '';
                 storeInput.value = '';
                 quantityInput.value = '';
                 priceInput.value = '';
             } catch (error) {
-                console.error('Error adding entry:', error);
-                alert('Error adding entry: ' + error.message);
+                console.error('Error saving entry:', error);
+                alert('Error saving entry: ' + error.message);
             }
 
             addBtn.disabled = false;
